@@ -33,8 +33,28 @@ func Show(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"product": product})
 }
 
-func Create(c *gin.Context) {}
+func Create(c *gin.Context) {
+	var product models.Product
+	if err := c.ShouldBind(&product); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	models.DB.Create(&product)
+	c.JSON(http.StatusOK, gin.H{"product": product})
+}
 
 func Delete(c *gin.Context) {}
 
-func Update(c *gin.Context) {}
+func Update(c *gin.Context) {
+	var product models.Product
+	id := c.Param("id")
+	if err := c.ShouldBindBodyWithJSON(&product); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	if models.DB.Model(&product).Where("id = ?", id).Updates(&product).RowsAffected == 0 {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Tidak dapat update"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"Message": "Berhasil update"})
+}
