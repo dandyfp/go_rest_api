@@ -3,6 +3,7 @@ package productcontroller
 import (
 	"net/http"
 	"rest-api-go/models"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -43,7 +44,23 @@ func Create(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"product": product})
 }
 
-func Delete(c *gin.Context) {}
+func Delete(c *gin.Context) {
+	var product models.Product
+	input := map[string]string{"id": "0"}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	id, _ := strconv.ParseInt(input["id"], 10, 64)
+	if models.DB.Delete(&product, id).RowsAffected == 0 {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Tidak dapat menghapus product"})
+		return
+
+	}
+	c.JSON(http.StatusOK, gin.H{"Message": "Berhasil hapus product"})
+
+}
 
 func Update(c *gin.Context) {
 	var product models.Product
